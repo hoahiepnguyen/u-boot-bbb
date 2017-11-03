@@ -182,6 +182,7 @@
 	DFUARGS
 #endif
 
+#ifdef CONFIG_BOOT_RESTORE
 #define CONFIG_BOOTCOMMAND \
 	"gpio set 53; " \
 	"i2c mw 0x24 1 0x3e; " \
@@ -194,6 +195,20 @@
 	"setenv bootpart 1:1; " \
 	"run mmcboot;" \
 	"run nandboot;"
+#else
+#define CONFIG_BOOTCOMMAND \
+	"gpio set 53; " \
+	"i2c mw 0x24 1 0x3e; " \
+	"run findfdt; " \
+	"run mmcboot;" \
+	"gpio clear 56; " \
+	"gpio clear 55; " \
+	"gpio clear 54; " \
+	"setenv mmcdev 1; " \
+	"setenv bootpart 1:2; " \
+    "load mmc ${bootpart} 0x82000000 fit;" \
+    "run ramargs; bootz;"
+#endif
 
 /* NS16550 Configuration */
 #define CONFIG_SYS_NS16550_COM1		0x44e09000	/* Base EVM has UART0 */

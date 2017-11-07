@@ -3164,6 +3164,8 @@ static int parse_stream_outer(struct in_str *inp, int flag)
 	struct p_context ctx;
 	o_string temp=NULL_O_STRING;
 	int rcode;
+
+	printf("hiep debug parse_stream_outer 1\n");
 #ifdef __U_BOOT__
 	int code = 0;
 #endif
@@ -3217,7 +3219,9 @@ static int parse_stream_outer(struct in_str *inp, int flag)
 			inp->p = NULL;
 			free_pipe_list(ctx.list_head,0);
 		}
+		printf("hiep debug parse_stream_outer 2\n");
 		b_free(&temp);
+		printf("hiep debug parse_stream_outer 3\n");
 	} while (rcode != -1 && !(flag & FLAG_EXIT_FROM_LOOP));   /* loop on syntax errors, return on EOF */
 #ifndef __U_BOOT__
 	return 0;
@@ -3236,6 +3240,7 @@ int parse_string_outer(const char *s, int flag)
 #ifdef __U_BOOT__
 	char *p = NULL;
 	int rcode;
+	printf("Hiep debug parse_string_outer\n");
 	if ( !s || !*s)
 		return 1;
 	if (!(p = strchr(s, '\n')) || *++p) {

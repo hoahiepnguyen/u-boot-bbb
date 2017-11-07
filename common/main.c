@@ -21,6 +21,8 @@
 #include <version.h>
 #include <watchdog.h>
 #include <linux/ctype.h>
+#include <dm.h>
+#include <asm/gpio.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -370,7 +372,18 @@ static void process_boot_delay(void)
 	}
 	else
 #endif /* CONFIG_BOOTCOUNT_LIMIT */
+
+		gpio_request(49, "led");
+		gpio_request(115, "led");
+		gpio_request(117, "led");
+		gpio_direction_output(49, 0);
+		gpio_direction_output(115, 1);
+		gpio_direction_output(117, 0);
+		gpio_free(49);
+		gpio_free(115);
+		gpio_free(117);
 		s = getenv ("bootcmd");
+
 #ifdef CONFIG_OF_CONTROL
 	/* Allow the fdt to override the boot command */
 	env = fdtdec_get_config_string(gd->fdt_blob, "bootcmd");
@@ -394,9 +407,11 @@ static void process_boot_delay(void)
 	if (bootdelay != -1 && s && !abortboot(bootdelay)) {
 #if defined(CONFIG_AUTOBOOT_KEYED) && !defined(CONFIG_AUTOBOOT_KEYED_CTRLC)
 		int prev = disable_ctrlc(1);	/* disable Control C checking */
+
 #endif
 
 		run_command_list(s, -1, 0);
+		printf("Hiep debug uboot: run here dfjklsdjf\n");
 
 #if defined(CONFIG_AUTOBOOT_KEYED) && !defined(CONFIG_AUTOBOOT_KEYED_CTRLC)
 		disable_ctrlc(prev);	/* restore Control C checking */
@@ -412,6 +427,49 @@ static void process_boot_delay(void)
 #endif /* CONFIG_MENUKEY */
 }
 #endif /* CONFIG_BOOTDELAY */
+
+#define GPI0_BUTTON		117
+#define GPIO_LED		49
+
+static ulong measureTimeButtonPressed(void)
+{
+	int buttonState;
+	ulong start;
+	ulong timeMeasure = 0;
+
+	start = get_timer(0);
+	buttonState = gpio_get_value(GPI0_BUTTON);
+	while(buttonState > 0)
+	{
+		//run here waiting for button released
+		buttonState = gpio_get_value(GPI0_BUTTON); //Update button state
+	}
+	timeMeasure = get_timer(start);
+
+	printf("GPIO_BUTTON: Time taken: %lu millisec\n", timeMeasure);
+
+	return timeMeasure;
+}
+
+static void check_gpio_pin_rst(void)
+{
+	ulong val;
+
+	gpio_request(GPIO_LED, "led");
+	gpio_request(GPI0_BUTTON, "button");
+
+	gpio_direction_input(GPI0_BUTTON);
+	gpio_direction_output(GPIO_LED, 1);
+
+	val = measureTimeButtonPressed();
+
+	if(val > 3000)
+	{
+		printf("RESTORE FIRMWARE NOW, PLEASE KEEP CABLE WHILE RESTORING\n");
+		gpio_direction_output(GPIO_LED, 1);
+	}
+
+}
 
 void main_loop(void)
 {
@@ -477,12 +535,15 @@ void main_loop(void)
 	update_tftp(0UL);
 #endif /* CONFIG_UPDATE_TFTP */
 
+
+
 #ifdef CONFIG_BOOTDELAY
 	process_boot_delay();
 #endif
 	/*
 	 * Main Loop for Monitor Command Processing
 	 */
+	printf("hiep debug run here 3\n");
 #ifdef CONFIG_SYS_HUSH_PARSER
 	parse_file_outer();
 	/* This point is never reached */
@@ -517,12 +578,12 @@ void main_loop(void)
 # endif
 		}
 #endif
-
+			printf("hiep debug run here 4\n");
 		if (len == -1)
 			puts ("<INTERRUPT>\n");
 		else
 			rc = run_command(lastcommand, flag);
-
+		printf("hiep debug run here 5\n");
 		if (rc <= 0) {
 			/* invalid command or not repeatable, forget it */
 			lastcommand[0] = 0;
@@ -1349,6 +1410,7 @@ static int builtin_run_command(const char *cmd, int flag)
 	int repeatable = 1;
 	int rc = 0;
 
+	puts("hiep debug run here 2\n");
 	debug_parser("[RUN_COMMAND] cmd[%p]=\"", cmd);
 	if (DEBUG_PARSER) {
 		/* use puts - string may be loooong */
@@ -1367,7 +1429,6 @@ static int builtin_run_command(const char *cmd, int flag)
 	}
 
 	strcpy (cmdbuf, cmd);
-
 	/* Process separators and check for invalid
 	 * repeatable commands
 	 */
@@ -1433,6 +1494,7 @@ static int builtin_run_command(const char *cmd, int flag)
  */
 int run_command(const char *cmd, int flag)
 {
+	printf("hiep debug run here 6\n");
 #ifndef CONFIG_SYS_HUSH_PARSER
 	/*
 	 * builtin_run_command can return 0 or 1 for success, so clean up
@@ -1461,6 +1523,7 @@ int run_command(const char *cmd, int flag)
  */
 static int builtin_run_command_list(char *cmd, int flag)
 {
+	printf("hiep debug run here 1\n");
 	char *line, *next;
 	int rcode = 0;
 
@@ -1497,6 +1560,7 @@ int run_command_list(const char *cmd, int len, int flag)
 	char *buff = (char *)cmd;	/* cast away const */
 	int rcode = 0;
 
+	printf("Hiep debug run command\n");
 	if (len == -1) {
 		len = strlen(cmd);
 #ifdef CONFIG_SYS_HUSH_PARSER
@@ -1515,6 +1579,7 @@ int run_command_list(const char *cmd, int len, int flag)
 		buff[len] = '\0';
 	}
 #ifdef CONFIG_SYS_HUSH_PARSER
+	printf("Hiep debug run command 1\n");
 	rcode = parse_string_outer(buff, FLAG_PARSE_SEMICOLON);
 #else
 	/*
@@ -1525,6 +1590,8 @@ int run_command_list(const char *cmd, int len, int flag)
 	 * is pretty rare.
 	 */
 	rcode = builtin_run_command_list(buff, flag);
+	printf("Hiep debug run command 2\n");
+
 	if (need_buff)
 		free(buff);
 #endif

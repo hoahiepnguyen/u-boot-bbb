@@ -36,6 +36,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+
 static const struct gpio_bank gpio_bank_am33xx[] = {
 	{ (void *)AM33XX_GPIO0_BASE, METHOD_GPIO_24XX },
 	{ (void *)AM33XX_GPIO1_BASE, METHOD_GPIO_24XX },
@@ -202,52 +203,7 @@ static void watchdog_disable(void)
 }
 #endif
 
-#define GPI0_BUTTON		117
-#define GPIO_LED		49
 
-static ulong measureTimeButtonPressed(void)
-{
-	int buttonState;
-	ulong start;
-	ulong timeMeasure = 0;
-
-	start = get_timer(0);
-	buttonState = gpio_get_value(GPI0_BUTTON);
-	while(buttonState > 0)
-	{
-		//run here waiting for button released
-		buttonState = gpio_get_value(GPI0_BUTTON); //Update button state
-	}
-	timeMeasure = get_timer(start);
-
-	printf("GPIO_BUTTON: Time taken: %lu millisec\n", timeMeasure);
-
-	return timeMeasure;
-}
-
-static void check_gpio_pin_rst(void)
-{
-	ulong val;
-
-	gpio_request(GPIO_LED, "led");
-	gpio_request(GPI0_BUTTON, "button");
-
-	gpio_direction_input(GPI0_BUTTON);
-	gpio_direction_output(GPIO_LED, 0);
-
-	val = measureTimeButtonPressed();
-
-	if(val > 3000)
-	{
-		printf("RESTORE FIRMWARE NOW, PLEASE KEEP CABLE WHILE RESTORING\n");
-		#define CONFIG_BOOT_RESTORE
-		gpio_set_value(GPIO_LED, 1);
-	}
-	else
-	{
-		gpio_set_value(GPIO_LED, 0);
-	}
-}
 
 void s_init(void)
 {
@@ -290,7 +246,6 @@ void s_init(void)
 	rtc32k_enable();
 #endif
 	sdram_init();
-	check_gpio_pin_rst();
 #endif
 }
 

@@ -192,29 +192,28 @@
 			"setenv fdtfile am335x-evmsk.dtb; fi; " \
 		"if test $fdtfile = undefined; then " \
 			"echo WARNING: Could not determine device tree to use; fi; \0" \
+	"userbutton_xm=gpio input 117;\0" \
+	"userbutton_nonxm=gpio input 49;\0" \
 	NANDARGS \
 	DFUARGS
 #endif
 
-#ifdef CONFIG_BOOT_RESTORE
 #define CONFIG_BOOTCOMMAND \
+	"if run userbutton_xm; then " \
+		"setenv bootenv restore.txt;" \
+	"else " \
+		"setenv bootenv uEnv.txt;" \
+	"fi;" \
 	"gpio clear 56; " \
 	"gpio clear 55; " \
 	"gpio clear 54; " \
+	"gpio input 117; " \
 	"setenv mmcdev 1; " \
 	"setenv bootpart 1:1; " \
 	"run mmcboot;" \
-	"run nandboot;"
-#else
-#define CONFIG_BOOTCOMMAND \
-	"gpio clear 56; " \
-	"gpio clear 55; " \
-	"gpio clear 54; " \
-	"setenv mmcdev 1; " \
-	"setenv bootpart 1:2; " \
-    "load mmc ${bootpart} 0x82000000 /boot/fit;" \
-    "run ramargs; bootm;"
-#endif
+	"run nandboot;" \
+
+
 
 /* NS16550 Configuration */
 #define CONFIG_SYS_NS16550_COM1		0x44e09000	/* Base EVM has UART0 */

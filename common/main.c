@@ -374,6 +374,7 @@ static void process_boot_delay(void)
 #endif /* CONFIG_BOOTCOUNT_LIMIT */
 
 		s = getenv ("bootcmd");
+		udelay(10); /*fix me, this is need some delay to check GPIO state */
 
 #ifdef CONFIG_OF_CONTROL
 	/* Allow the fdt to override the boot command */
@@ -402,7 +403,6 @@ static void process_boot_delay(void)
 #endif
 
 		run_command_list(s, -1, 0);
-		printf("Hiep debug uboot: run here dfjklsdjf\n");
 
 #if defined(CONFIG_AUTOBOOT_KEYED) && !defined(CONFIG_AUTOBOOT_KEYED_CTRLC)
 		disable_ctrlc(prev);	/* restore Control C checking */
@@ -493,7 +493,6 @@ void main_loop(void)
 	/*
 	 * Main Loop for Monitor Command Processing
 	 */
-	printf("hiep debug run here 3\n");
 #ifdef CONFIG_SYS_HUSH_PARSER
 	parse_file_outer();
 	/* This point is never reached */
@@ -528,12 +527,10 @@ void main_loop(void)
 # endif
 		}
 #endif
-			printf("hiep debug run here 4\n");
 		if (len == -1)
 			puts ("<INTERRUPT>\n");
 		else
 			rc = run_command(lastcommand, flag);
-		printf("hiep debug run here 5\n");
 		if (rc <= 0) {
 			/* invalid command or not repeatable, forget it */
 			lastcommand[0] = 0;
@@ -1360,7 +1357,6 @@ static int builtin_run_command(const char *cmd, int flag)
 	int repeatable = 1;
 	int rc = 0;
 
-	puts("hiep debug run here 2\n");
 	debug_parser("[RUN_COMMAND] cmd[%p]=\"", cmd);
 	if (DEBUG_PARSER) {
 		/* use puts - string may be loooong */
@@ -1444,7 +1440,6 @@ static int builtin_run_command(const char *cmd, int flag)
  */
 int run_command(const char *cmd, int flag)
 {
-	printf("hiep debug run here 6\n");
 #ifndef CONFIG_SYS_HUSH_PARSER
 	/*
 	 * builtin_run_command can return 0 or 1 for success, so clean up
@@ -1473,7 +1468,6 @@ int run_command(const char *cmd, int flag)
  */
 static int builtin_run_command_list(char *cmd, int flag)
 {
-	printf("hiep debug run here 1\n");
 	char *line, *next;
 	int rcode = 0;
 
@@ -1510,7 +1504,6 @@ int run_command_list(const char *cmd, int len, int flag)
 	char *buff = (char *)cmd;	/* cast away const */
 	int rcode = 0;
 
-	printf("Hiep debug run command\n");
 	if (len == -1) {
 		len = strlen(cmd);
 #ifdef CONFIG_SYS_HUSH_PARSER
@@ -1529,7 +1522,6 @@ int run_command_list(const char *cmd, int len, int flag)
 		buff[len] = '\0';
 	}
 #ifdef CONFIG_SYS_HUSH_PARSER
-	printf("Hiep debug run command 1\n");
 	rcode = parse_string_outer(buff, FLAG_PARSE_SEMICOLON);
 #else
 	/*
@@ -1540,7 +1532,6 @@ int run_command_list(const char *cmd, int len, int flag)
 	 * is pretty rare.
 	 */
 	rcode = builtin_run_command_list(buff, flag);
-	printf("Hiep debug run command 2\n");
 
 	if (need_buff)
 		free(buff);

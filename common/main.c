@@ -373,15 +373,6 @@ static void process_boot_delay(void)
 	else
 #endif /* CONFIG_BOOTCOUNT_LIMIT */
 
-		gpio_request(49, "led");
-		gpio_request(115, "led");
-		gpio_request(117, "led");
-		gpio_direction_output(49, 0);
-		gpio_direction_output(115, 1);
-		gpio_direction_output(117, 0);
-		gpio_free(49);
-		gpio_free(115);
-		gpio_free(117);
 		s = getenv ("bootcmd");
 
 #ifdef CONFIG_OF_CONTROL
@@ -428,48 +419,7 @@ static void process_boot_delay(void)
 }
 #endif /* CONFIG_BOOTDELAY */
 
-#define GPI0_BUTTON		117
-#define GPIO_LED		49
 
-static ulong measureTimeButtonPressed(void)
-{
-	int buttonState;
-	ulong start;
-	ulong timeMeasure = 0;
-
-	start = get_timer(0);
-	buttonState = gpio_get_value(GPI0_BUTTON);
-	while(buttonState > 0)
-	{
-		//run here waiting for button released
-		buttonState = gpio_get_value(GPI0_BUTTON); //Update button state
-	}
-	timeMeasure = get_timer(start);
-
-	printf("GPIO_BUTTON: Time taken: %lu millisec\n", timeMeasure);
-
-	return timeMeasure;
-}
-
-static void check_gpio_pin_rst(void)
-{
-	ulong val;
-
-	gpio_request(GPIO_LED, "led");
-	gpio_request(GPI0_BUTTON, "button");
-
-	gpio_direction_input(GPI0_BUTTON);
-	gpio_direction_output(GPIO_LED, 1);
-
-	val = measureTimeButtonPressed();
-
-	if(val > 3000)
-	{
-		printf("RESTORE FIRMWARE NOW, PLEASE KEEP CABLE WHILE RESTORING\n");
-		gpio_direction_output(GPIO_LED, 1);
-	}
-
-}
 
 void main_loop(void)
 {

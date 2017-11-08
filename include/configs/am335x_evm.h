@@ -192,14 +192,13 @@
 			"setenv fdtfile am335x-evmsk.dtb; fi; " \
 		"if test $fdtfile = undefined; then " \
 			"echo WARNING: Could not determine device tree to use; fi; \0" \
-	"userbutton_xm=gpio input 117;\0" \
-	"userbutton_nonxm=gpio input 49;\0" \
+	"userbutton=gpio input 117;\0" \
 	NANDARGS \
 	DFUARGS
 #endif
 
 #define CONFIG_BOOTCOMMAND \
-	"if run userbutton_xm; then " \
+	"if run userbutton; then " \
 		"setenv bootenv restore.txt;" \
 	"else " \
 		"setenv bootenv uEnv.txt;" \
@@ -207,7 +206,6 @@
 	"gpio clear 56; " \
 	"gpio clear 55; " \
 	"gpio clear 54; " \
-	"gpio input 117; " \
 	"setenv mmcdev 1; " \
 	"setenv bootpart 1:1; " \
 	"run mmcboot;" \
